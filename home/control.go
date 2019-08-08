@@ -989,6 +989,8 @@ func registerControlHandlers() {
 	http.HandleFunc("/control/stats", postInstall(optionalAuth(ensureGET(handleStats))))
 	http.HandleFunc("/control/stats_history", postInstall(optionalAuth(ensureGET(handleStatsHistory))))
 	http.HandleFunc("/control/stats_reset", postInstall(optionalAuth(ensurePOST(handleStatsReset))))
+	http.HandleFunc("/control/stats_config", postInstall(optionalAuth(ensurePOST(handleStatsConfig))))
+	http.HandleFunc("/control/stats_info", postInstall(optionalAuth(ensureGET(handleStatsInfo))))
 	http.HandleFunc("/control/version.json", postInstall(optionalAuth(handleGetVersionJSON)))
 	http.HandleFunc("/control/update", postInstall(optionalAuth(ensurePOST(handleUpdate))))
 	http.HandleFunc("/control/filtering/enable", postInstall(optionalAuth(ensurePOST(handleFilteringEnable))))
