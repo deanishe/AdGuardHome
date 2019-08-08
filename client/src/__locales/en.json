@@ -353,5 +353,10 @@
     "blocked_services_global": "Use global blocked services",
     "blocked_service": "Blocked service",
     "block_all": "Block all",
-    "unblock_all": "Unblock all"
+    "unblock_all": "Unblock all",
+    "stats_params": "Statistics configuration",
+    "config_successfully_saved": "Configuration successfully saved",
+    "interval_24_hour": "24 hours",
+    "interval_days": "{{value}} days",
+    "time_period": "Time period"
 }

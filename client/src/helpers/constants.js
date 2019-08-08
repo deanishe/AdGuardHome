@@ -244,3 +244,5 @@ export const SERVICES = [
         name: 'mail.ru',
     },
 ];
+
+export const STATS_INTERVALS = [1, 7, 30, 90];
