@@ -49,11 +49,19 @@ class BlockedDomains extends Component {
     }];
 
     render() {
-        const { t } = this.props;
+        const {
+            t, refreshButton, topBlockedDomains, subtitle,
+        } = this.props;
+
         return (
-            <Card title={ t('top_blocked_domains') } subtitle={ t('for_last_24_hours') } bodyType="card-table" refresh={this.props.refreshButton}>
+            <Card
+                title={t('top_blocked_domains')}
+                subtitle={subtitle}
+                bodyType="card-table"
+                refresh={refreshButton}
+            >
                 <ReactTable
-                    data={map(this.props.topBlockedDomains, (value, prop) => (
+                    data={map(topBlockedDomains, (value, prop) => (
                         { ip: prop, domain: value }
                     ))}
                     columns={this.columns}
@@ -73,6 +81,7 @@ BlockedDomains.propTypes = {
     replacedSafebrowsing: PropTypes.number.isRequired,
     replacedParental: PropTypes.number.isRequired,
     refreshButton: PropTypes.node.isRequired,
+    subtitle: PropTypes.string.isRequired,
     t: PropTypes.func,
 };
 

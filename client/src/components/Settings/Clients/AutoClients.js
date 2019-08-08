@@ -59,7 +59,7 @@ class AutoClients extends Component {
             Cell: this.cellWrap,
         },
         {
-            Header: this.props.t('table_statistics'),
+            Header: this.props.t('requests_count'),
             accessor: 'statistics',
             Cell: (row) => {
                 const clientIP = row.original.ip;

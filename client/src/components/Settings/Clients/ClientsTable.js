@@ -149,7 +149,7 @@ class ClientsTable extends Component {
             },
         },
         {
-            Header: this.props.t('table_statistics'),
+            Header: this.props.t('requests_count'),
             accessor: 'statistics',
             Cell: (row) => {
                 const clientIP = row.original.ip;

@@ -57,16 +57,23 @@ class Clients extends Component {
     }];
 
     render() {
-        const { t } = this.props;
+        const {
+            t, refreshButton, topClients, subtitle,
+        } = this.props;
         return (
-            <Card title={ t('top_clients') } subtitle={ t('for_last_24_hours') } bodyType="card-table" refresh={this.props.refreshButton}>
+            <Card
+                title={t('top_clients')}
+                subtitle={subtitle}
+                bodyType="card-table"
+                refresh={refreshButton}
+            >
                 <ReactTable
-                    data={map(this.props.topClients, (value, prop) => (
+                    data={map(topClients, (value, prop) => (
                         { ip: prop, count: value }
                     ))}
                     columns={this.columns}
                     showPagination={false}
-                    noDataText={ t('no_clients_found') }
+                    noDataText={t('no_clients_found')}
                     minRows={6}
                     className="-striped -highlight card-table-overflow"
                 />
@@ -81,6 +88,7 @@ Clients.propTypes = {
     refreshButton: PropTypes.node.isRequired,
     clients: PropTypes.array.isRequired,
     autoClients: PropTypes.array.isRequired,
+    subtitle: PropTypes.string.isRequired,
     t: PropTypes.func,
 };
 

@@ -19,9 +19,10 @@ class Dashboard extends Component {
 
     getAllStats = () => {
         this.props.getStats();
-        this.props.getStatsHistory();
         this.props.getTopStats();
         this.props.getClients();
+        this.props.getLogsInfo();
+        this.props.getStatsHistory();
     }
 
     getToggleFilteringButton = () => {
@@ -42,13 +43,19 @@ class Dashboard extends Component {
     }
 
     render() {
-        const { dashboard, t } = this.props;
+        const { dashboard, queryLogs, t } = this.props;
+        const { stats } = dashboard;
         const dashboardProcessing =
             dashboard.processing ||
             dashboard.processingStats ||
             dashboard.processingStatsHistory ||
             dashboard.processingClients ||
-            dashboard.processingTopStats;
+            dashboard.processingTopStats ||
+            queryLogs.getLogsInfoProcessing;
+
+        const subtitle = queryLogs.interval === 1
+            ? t('for_last_24_hours')
+            : t('for_last_days', { value: queryLogs.interval });
 
         const refreshFullButton = (
             <button
@@ -87,23 +94,25 @@ class Dashboard extends Component {
                                 <Statistics
                                     history={dashboard.statsHistory}
                                     refreshButton={refreshButton}
-                                    dnsQueries={dashboard.stats.dns_queries}
-                                    blockedFiltering={dashboard.stats.blocked_filtering}
-                                    replacedSafebrowsing={dashboard.stats.replaced_safebrowsing}
-                                    replacedParental={dashboard.stats.replaced_parental}
+                                    dnsQueries={stats.dns_queries}
+                                    blockedFiltering={stats.blocked_filtering}
+                                    replacedSafebrowsing={stats.replaced_safebrowsing}
+                                    replacedParental={stats.replaced_parental}
                                 />
                             </div>
                         }
                         <div className="col-lg-6">
                             {dashboard.stats &&
                                 <Counters
+                                    subtitle={subtitle}
+                                    interval={queryLogs.interval}
                                     refreshButton={refreshButton}
-                                    dnsQueries={dashboard.stats.dns_queries}
-                                    blockedFiltering={dashboard.stats.blocked_filtering}
-                                    replacedSafebrowsing={dashboard.stats.replaced_safebrowsing}
-                                    replacedParental={dashboard.stats.replaced_parental}
-                                    replacedSafesearch={dashboard.stats.replaced_safesearch}
-                                    avgProcessingTime={dashboard.stats.avg_processing_time}
+                                    dnsQueries={stats.dns_queries}
+                                    blockedFiltering={stats.blocked_filtering}
+                                    replacedSafebrowsing={stats.replaced_safebrowsing}
+                                    replacedParental={stats.replaced_parental}
+                                    replacedSafesearch={stats.replaced_safesearch}
+                                    avgProcessingTime={stats.avg_processing_time}
                                 />
                             }
                         </div>
@@ -111,6 +120,7 @@ class Dashboard extends Component {
                             <Fragment>
                                 <div className="col-lg-6">
                                     <Clients
+                                        subtitle={subtitle}
                                         dnsQueries={dashboard.stats.dns_queries}
                                         refreshButton={refreshButton}
                                         topClients={dashboard.topStats.top_clients}
@@ -120,6 +130,7 @@ class Dashboard extends Component {
                                 </div>
                                 <div className="col-lg-6">
                                     <QueriedDomains
+                                        subtitle={subtitle}
                                         dnsQueries={dashboard.stats.dns_queries}
                                         refreshButton={refreshButton}
                                         topQueriedDomains={dashboard.topStats.top_queried_domains}
@@ -127,6 +138,7 @@ class Dashboard extends Component {
                                 </div>
                                 <div className="col-lg-6">
                                     <BlockedDomains
+                                        subtitle={subtitle}
                                         refreshButton={refreshButton}
                                         topBlockedDomains={dashboard.topStats.top_blocked_domains}
                                         blockedFiltering={dashboard.stats.blocked_filtering}
@@ -148,10 +160,12 @@ Dashboard.propTypes = {
     getStatsHistory: PropTypes.func,
     getTopStats: PropTypes.func,
     dashboard: PropTypes.object,
+    queryLogs: PropTypes.object,
     isCoreRunning: PropTypes.bool,
     getFiltering: PropTypes.func,
     toggleProtection: PropTypes.func,
     getClients: PropTypes.func,
+    getLogsInfo: PropTypes.func,
     processingProtection: PropTypes.bool,
     t: PropTypes.func,
 };

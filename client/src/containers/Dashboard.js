@@ -3,8 +3,8 @@ import * as actionCreators from '../actions';
 import Dashboard from '../components/Dashboard';
 
 const mapStateToProps = (state) => {
-    const { dashboard } = state;
-    const props = { dashboard };
+    const { dashboard, queryLogs } = state;
+    const props = { dashboard, queryLogs };
     return props;
 };
 
