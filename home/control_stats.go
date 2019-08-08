@@ -49,6 +49,26 @@ func handleStatsConfig(w http.ResponseWriter, r *http.Request) {
 	httpUpdateConfigReloadDNSReturnOK(w, r)
 }
 
+// handleStats returns aggregated stats data for the 24 hours
+func handleStats(w http.ResponseWriter, r *http.Request) {
+	log.Tracef("%s %v", r.Method, r.URL)
+	returnOK(w)
+}
+
+// handleStatsReset resets the stats caches
+func handleStatsReset(w http.ResponseWriter, r *http.Request) {
+	log.Tracef("%s %v", r.Method, r.URL)
+	returnOK(w)
+}
+
+// RegisterStatsHandlers - register handlers
+func RegisterStatsHandlers() {
+	http.HandleFunc("/control/stats", postInstall(optionalAuth(ensureGET(handleStats))))
+	http.HandleFunc("/control/stats_reset", postInstall(optionalAuth(ensurePOST(handleStatsReset))))
+	http.HandleFunc("/control/stats_config", postInstall(optionalAuth(ensurePOST(handleStatsConfig))))
+	http.HandleFunc("/control/stats_info", postInstall(optionalAuth(ensureGET(handleStatsInfo))))
+}
+
 func checkStatsInterval(i uint) bool {
 	return i == 1 || i == 7 || i == 30 || i == 90
 }

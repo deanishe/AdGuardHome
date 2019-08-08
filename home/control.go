@@ -1,14 +1,12 @@
 package home
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net"
 	"net/http"
 	"os"
-	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -185,153 +183,6 @@ func handleQueryLog(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		httpError(w, http.StatusInternalServerError, "Unable to write response json: %s", err)
 	}
-}
-
-func handleStatsTop(w http.ResponseWriter, r *http.Request) {
-	log.Tracef("%s %v", r.Method, r.URL)
-	s := config.dnsServer.GetStatsTop()
-
-	// use manual json marshalling because we want maps to be sorted by value
-	statsJSON := bytes.Buffer{}
-	statsJSON.WriteString("{\n")
-
-	gen := func(json *bytes.Buffer, name string, top map[string]int, addComma bool) {
-		json.WriteString("  ")
-		json.WriteString(fmt.Sprintf("%q", name))
-		json.WriteString(": {\n")
-		sorted := sortByValue(top)
-		// no more than 50 entries
-		if len(sorted) > 50 {
-			sorted = sorted[:50]
-		}
-		for i, key := range sorted {
-			json.WriteString("    ")
-			json.WriteString(fmt.Sprintf("%q", key))
-			json.WriteString(": ")
-			json.WriteString(strconv.Itoa(top[key]))
-			if i+1 != len(sorted) {
-				json.WriteByte(',')
-			}
-			json.WriteByte('\n')
-		}
-		json.WriteString("  }")
-		if addComma {
-			json.WriteByte(',')
-		}
-		json.WriteByte('\n')
-	}
-	gen(&statsJSON, "top_queried_domains", s.Domains, true)
-	gen(&statsJSON, "top_blocked_domains", s.Blocked, true)
-	gen(&statsJSON, "top_clients", s.Clients, true)
-	statsJSON.WriteString("  \"stats_period\": \"24 hours\"\n")
-	statsJSON.WriteString("}\n")
-
-	w.Header().Set("Content-Type", "application/json")
-	_, err := w.Write(statsJSON.Bytes())
-	if err != nil {
-		httpError(w, http.StatusInternalServerError, "Couldn't write body: %s", err)
-	}
-}
-
-// handleStatsReset resets the stats caches
-func handleStatsReset(w http.ResponseWriter, r *http.Request) {
-	log.Tracef("%s %v", r.Method, r.URL)
-	config.dnsServer.PurgeStats()
-	_, err := fmt.Fprintf(w, "OK\n")
-	if err != nil {
-		httpError(w, http.StatusInternalServerError, "Couldn't write body: %s", err)
-	}
-}
-
-// handleStats returns aggregated stats data for the 24 hours
-func handleStats(w http.ResponseWriter, r *http.Request) {
-	log.Tracef("%s %v", r.Method, r.URL)
-	summed := config.dnsServer.GetAggregatedStats()
-
-	statsJSON, err := json.Marshal(summed)
-	if err != nil {
-		httpError(w, http.StatusInternalServerError, "Unable to marshal status json: %s", err)
-		return
-	}
-	w.Header().Set("Content-Type", "application/json")
-	_, err = w.Write(statsJSON)
-	if err != nil {
-		httpError(w, http.StatusInternalServerError, "Unable to write response json: %s", err)
-		return
-	}
-}
-
-// HandleStatsHistory returns historical stats data for the 24 hours
-func handleStatsHistory(w http.ResponseWriter, r *http.Request) {
-	log.Tracef("%s %v", r.Method, r.URL)
-	// handle time unit and prepare our time window size
-	timeUnitString := r.URL.Query().Get("time_unit")
-	var timeUnit time.Duration
-	switch timeUnitString {
-	case "seconds":
-		timeUnit = time.Second
-	case "minutes":
-		timeUnit = time.Minute
-	case "hours":
-		timeUnit = time.Hour
-	case "days":
-		timeUnit = time.Hour * 24
-	default:
-		http.Error(w, "Must specify valid time_unit parameter", http.StatusBadRequest)
-		return
-	}
-
-	// parse start and end time
-	startTime, err := time.Parse(time.RFC3339, r.URL.Query().Get("start_time"))
-	if err != nil {
-		httpError(w, http.StatusBadRequest, "Must specify valid start_time parameter: %s", err)
-		return
-	}
-	endTime, err := time.Parse(time.RFC3339, r.URL.Query().Get("end_time"))
-	if err != nil {
-		httpError(w, http.StatusBadRequest, "Must specify valid end_time parameter: %s", err)
-		return
-	}
-
-	data, err := config.dnsServer.GetStatsHistory(timeUnit, startTime, endTime)
-	if err != nil {
-		httpError(w, http.StatusBadRequest, "Cannot get stats history: %s", err)
-		return
-	}
-
-	statsJSON, err := json.Marshal(data)
-	if err != nil {
-		httpError(w, http.StatusInternalServerError, "Unable to marshal status json: %s", err)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	_, err = w.Write(statsJSON)
-	if err != nil {
-		httpError(w, http.StatusInternalServerError, "Unable to write response json: %s", err)
-		return
-	}
-}
-
-// sortByValue is a helper function for querylog API
-func sortByValue(m map[string]int) []string {
-	type kv struct {
-		k string
-		v int
-	}
-	var ss []kv
-	for k, v := range m {
-		ss = append(ss, kv{k, v})
-	}
-	sort.Slice(ss, func(l, r int) bool {
-		return ss[l].v > ss[r].v
-	})
-
-	sorted := []string{}
-	for _, v := range ss {
-		sorted = append(sorted, v.k)
-	}
-	return sorted
 }
 
 // -----------------------
@@ -985,12 +836,6 @@ func registerControlHandlers() {
 	http.HandleFunc("/control/test_upstream_dns", postInstall(optionalAuth(ensurePOST(handleTestUpstreamDNS))))
 	http.HandleFunc("/control/i18n/change_language", postInstall(optionalAuth(ensurePOST(handleI18nChangeLanguage))))
 	http.HandleFunc("/control/i18n/current_language", postInstall(optionalAuth(ensureGET(handleI18nCurrentLanguage))))
-	http.HandleFunc("/control/stats_top", postInstall(optionalAuth(ensureGET(handleStatsTop))))
-	http.HandleFunc("/control/stats", postInstall(optionalAuth(ensureGET(handleStats))))
-	http.HandleFunc("/control/stats_history", postInstall(optionalAuth(ensureGET(handleStatsHistory))))
-	http.HandleFunc("/control/stats_reset", postInstall(optionalAuth(ensurePOST(handleStatsReset))))
-	http.HandleFunc("/control/stats_config", postInstall(optionalAuth(ensurePOST(handleStatsConfig))))
-	http.HandleFunc("/control/stats_info", postInstall(optionalAuth(ensureGET(handleStatsInfo))))
 	http.HandleFunc("/control/version.json", postInstall(optionalAuth(handleGetVersionJSON)))
 	http.HandleFunc("/control/update", postInstall(optionalAuth(ensurePOST(handleUpdate))))
 	http.HandleFunc("/control/filtering/enable", postInstall(optionalAuth(ensurePOST(handleFilteringEnable))))
@@ -1025,6 +870,7 @@ func registerControlHandlers() {
 	RegisterClientsHandlers()
 	registerRewritesHandlers()
 	RegisterBlockedServicesHandlers()
+	RegisterStatsHandlers()
 
 	http.HandleFunc("/dns-query", postInstall(handleDOH))
 }
