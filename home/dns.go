@@ -6,6 +6,8 @@ import (
 	"os"
 	"sync"
 
+	"github.com/AdguardTeam/AdGuardHome/stats"
+
 	"github.com/AdguardTeam/AdGuardHome/dnsfilter"
 	"github.com/AdguardTeam/AdGuardHome/dnsforward"
 	"github.com/AdguardTeam/dnsproxy/proxy"
@@ -33,7 +35,11 @@ func initDNSServer(baseDir string) {
 		log.Fatalf("Cannot create DNS data dir at %s: %s", baseDir, err)
 	}
 
-	config.dnsServer = dnsforward.NewServer(baseDir)
+	config.stats = stats.New("./data/stats.db", int(config.DNS.StatsInterval), nil)
+	if config.stats == nil {
+		log.Fatal("config.stats == nil")
+	}
+	config.dnsServer = dnsforward.NewServer(baseDir, config.stats)
 
 	initRDNS()
 }
@@ -177,6 +183,8 @@ func stopDNSServer() error {
 	if err != nil {
 		return errorx.Decorate(err, "Couldn't stop forwarding DNS server")
 	}
+
+	config.stats.Close()
 
 	return nil
 }

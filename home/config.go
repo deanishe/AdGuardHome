@@ -9,6 +9,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/AdguardTeam/AdGuardHome/stats"
+
 	"github.com/AdguardTeam/AdGuardHome/dhcpd"
 	"github.com/AdguardTeam/AdGuardHome/dnsfilter"
 	"github.com/AdguardTeam/AdGuardHome/dnsforward"
@@ -68,6 +70,7 @@ type configuration struct {
 	controlLock      sync.Mutex
 	transport        *http.Transport
 	client           *http.Client
+	stats            stats.Stats
 
 	// cached version.json to avoid hammering github.io for each page reload
 	versionCheckJSON     []byte

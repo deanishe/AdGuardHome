@@ -808,6 +808,29 @@ Response:
 
 ## Statistics
 
+Load (main thread):
+. Load data from the last bucket from DB for the current hour
+
+Runtime (DNS worker threads):
+. Update current unit
+
+Runtime (goroutine):
+. Periodically check that current unit should be flushed to file (when the current hour changes)
+ . If so, flush it, allocate a new empty unit
+
+Runtime (HTTP worker threads):
+. To respond to "Get statistics" API request we:
+ . load all units from file
+ . load current unit
+ . process data from all loaded units:
+  . sum up data for "total counters" output values
+  . add value into "per time unit counters" output arrays
+  . aggregate data for "top_" output arrays;  sort in descending order
+
+Unload (main thread):
+. Flush current unit to file
+
+
 ### API: Get statistics
 
 Request:
@@ -821,6 +844,7 @@ Response:
 	{
 		time_units: hours | days
 
+		// total counters:
 		num_dns_queries: 123
 		num_blocked_filtering: 123
 		num_replaced_safebrowsing: 123
@@ -828,6 +852,7 @@ Response:
 		num_replaced_parental: 123
 		avg_processing_time: 123
 
+		// per time unit counters
 		dns_queries: [123, ...]
 		blocked_filtering: [123, ...]
 		replaced_parental: [123, ...]
