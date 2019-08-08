@@ -218,6 +218,14 @@ const dashboard = handleActions({
     clients: [],
     autoClients: [],
     topStats: [],
+    stats: {
+        dns_queries: '',
+        blocked_filtering: '',
+        replaced_safebrowsing: '',
+        replaced_parental: '',
+        replaced_safesearch: '',
+        avg_processing_time: '',
+    },
 });
 
 const queryLogs = handleActions({
@@ -232,11 +240,30 @@ const queryLogs = handleActions({
     [actions.downloadQueryLogRequest]: state => ({ ...state, logsDownloading: true }),
     [actions.downloadQueryLogFailure]: state => ({ ...state, logsDownloading: false }),
     [actions.downloadQueryLogSuccess]: state => ({ ...state, logsDownloading: false }),
+
+    [actions.getLogsInfoRequest]: state => ({ ...state, getLogsInfoProcessing: true }),
+    [actions.getLogsInfoFailure]: state => ({ ...state, getLogsInfoProcessing: false }),
+    [actions.getLogsInfoSuccess]: (state, { payload }) => ({
+        ...state,
+        interval: payload.interval,
+        getLogsInfoProcessing: false,
+    }),
+
+    [actions.setLogsConfigRequest]: state => ({ ...state, setLogsConfigProcessing: true }),
+    [actions.setLogsConfigFailure]: state => ({ ...state, setLogsConfigProcessing: false }),
+    [actions.setLogsConfigSuccess]: (state, { payload }) => ({
+        ...state,
+        interval: payload.interval,
+        setLogsConfigProcessing: false,
+    }),
 }, {
     getLogsProcessing: false,
+    getLogsInfoProcessing: false,
+    setLogsConfigProcessing: false,
     logsDownloading: false,
     total: 0,
     logs: [],
+    interval: 1,
 });
 
 const filtering = handleActions({

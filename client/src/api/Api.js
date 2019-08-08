@@ -40,6 +40,8 @@ export default class Api {
     GLOBAL_ENABLE_PROTECTION = { path: 'enable_protection', method: 'POST' };
     GLOBAL_DISABLE_PROTECTION = { path: 'disable_protection', method: 'POST' };
     GLOBAL_UPDATE = { path: 'update', method: 'POST' };
+    GLOBAL_QUERY_LOG_CONFIG = { path: 'querylog_config', method: 'POST' };
+    GLOBAL_QUERY_LOG_INFO = { path: 'querylog_info', method: 'GET' };
 
     restartGlobalFiltering() {
         const { path, method } = this.GLOBAL_RESTART;
@@ -154,6 +156,20 @@ export default class Api {
     getUpdate() {
         const { path, method } = this.GLOBAL_UPDATE;
         return this.makeRequest(path, method);
+    }
+
+    getQueryLogInfo() {
+        const { path, method } = this.GLOBAL_QUERY_LOG_INFO;
+        return this.makeRequest(path, method);
+    }
+
+    setQueryLogConfig(interval) {
+        const { path, method } = this.GLOBAL_QUERY_LOG_CONFIG;
+        const config = {
+            data: interval,
+            headers: { 'Content-Type': 'application/json' },
+        };
+        return this.makeRequest(path, method, config);
     }
 
     // Filtering

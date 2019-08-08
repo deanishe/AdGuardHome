@@ -542,6 +542,37 @@ export const downloadQueryLog = () => async (dispatch) => {
     return data;
 };
 
+export const getLogsInfoRequest = createAction('GET_LOGS_CONFIG_REQUEST');
+export const getLogsInfoFailure = createAction('GET_LOGS_CONFIG_FAILURE');
+export const getLogsInfoSuccess = createAction('GET_LOGS_CONFIG_SUCCESS');
+
+export const getLogsInfo = () => async (dispatch) => {
+    dispatch(getLogsInfoRequest());
+    try {
+        const data = await apiClient.getQueryLogInfo();
+        dispatch(getLogsInfoSuccess(data));
+    } catch (error) {
+        dispatch(addErrorToast({ error }));
+        dispatch(getLogsInfoFailure());
+    }
+};
+
+export const setLogsConfigRequest = createAction('SET_LOGS_CONFIG_REQUEST');
+export const setLogsConfigFailure = createAction('SET_LOGS_CONFIG_FAILURE');
+export const setLogsConfigSuccess = createAction('SET_LOGS_CONFIG_SUCCESS');
+
+export const setLogsConfig = config => async (dispatch) => {
+    dispatch(setLogsConfigRequest());
+    try {
+        await apiClient.setQueryLogConfig(config);
+        dispatch(addSuccessToast('logs_config_successfully_set'));
+        dispatch(setLogsConfigSuccess(config));
+    } catch (error) {
+        dispatch(addErrorToast({ error }));
+        dispatch(setLogsConfigFailure());
+    }
+};
+
 export const handleUpstreamChange = createAction('HANDLE_UPSTREAM_CHANGE');
 export const setUpstreamRequest = createAction('SET_UPSTREAM_REQUEST');
 export const setUpstreamFailure = createAction('SET_UPSTREAM_FAILURE');

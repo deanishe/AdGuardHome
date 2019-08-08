@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { withNamespaces, Trans } from 'react-i18next';
 
 import Services from './Services';
+import LogsConfig from './LogsConfig';
 import Checkbox from '../ui/Checkbox';
 import Loading from '../ui/Loading';
 import PageTitle from '../ui/PageTitle';
@@ -37,6 +38,7 @@ class Settings extends Component {
     componentDidMount() {
         this.props.initSettings(this.settings);
         this.props.getBlockedServices();
+        this.props.getLogsInfo();
     }
 
     renderSettings = (settings) => {
@@ -62,7 +64,13 @@ class Settings extends Component {
 
     render() {
         const {
-            settings, services, setBlockedServices, t,
+            settings,
+            services,
+            setBlockedServices,
+            getLogsInfo,
+            setLogsConfig,
+            queryLogs,
+            t,
         } = this.props;
         return (
             <Fragment>
@@ -77,6 +85,14 @@ class Settings extends Component {
                                         {this.renderSettings(settings.settingsList)}
                                     </div>
                                 </Card>
+                            </div>
+                            <div className="col-md-12">
+                                <LogsConfig
+                                    interval={queryLogs.interval}
+                                    processing={queryLogs.setLogsConfigProcessing}
+                                    getLogsInfo={getLogsInfo}
+                                    setLogsConfig={setLogsConfig}
+                                />
                             </div>
                             <div className="col-md-12">
                                 <Services
@@ -97,6 +113,8 @@ Settings.propTypes = {
     settings: PropTypes.object,
     settingsList: PropTypes.object,
     toggleSetting: PropTypes.func,
+    getLogsInfo: PropTypes.func,
+    setLogsConfig: PropTypes.func,
     t: PropTypes.func,
 };
 
