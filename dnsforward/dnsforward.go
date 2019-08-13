@@ -108,6 +108,9 @@ type TLSConfig struct {
 	TLSListenAddr    *net.TCPAddr `yaml:"-" json:"-"`
 	CertificateChain string       `yaml:"certificate_chain" json:"certificate_chain"` // PEM-encoded certificates chain
 	PrivateKey       string       `yaml:"private_key" json:"private_key"`             // PEM-encoded private key
+
+	CertificatePath string `yaml:"certificate_path" json:"certificate_path"` // certificate file name
+	PrivateKeyPath  string `yaml:"private_key_path" json:"private_key_path"` // private key file name
 }
 
 // ServerConfig represents server configuration.

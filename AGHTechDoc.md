@@ -12,6 +12,7 @@ Contents:
 * Updating
 	* Get version command
 	* Update command
+* TLS
 * Device Names and Per-client Settings
 	* Per-client settings
 	* Get list of clients
@@ -508,6 +509,29 @@ Request:
 		"mac":"...",
 		"ip":"...",
 		"hostname":"..."
+	}
+
+Response:
+
+	200 OK
+
+
+## TLS
+
+Request:
+
+	POST /control/tls/configure
+
+	{
+	"enabled":true,
+	"server_name":"hostname",
+	"force_https":false,
+	"port_https":443,
+	"port_dns_over_tls":853,
+	"certificate_chain":"...",
+	"private_key":"...",
+	"certificate_path":"...",
+	"private_key_path":"..."
 	}
 
 Response:
