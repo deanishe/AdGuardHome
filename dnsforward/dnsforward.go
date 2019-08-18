@@ -48,6 +48,10 @@ type Server struct {
 	DisallowedClientsIPNet []net.IPNet     // CIDRs of clients that should be blocked
 	BlockedHosts           map[string]bool // hosts that should be blocked
 
+	// IP addresses to return for blocked hosts in "blackhole" mode
+	BlackholeIPv4 net.IP
+	BlackholeIPv6 net.IP
+
 	sync.RWMutex
 	conf ServerConfig
 }
@@ -80,6 +84,8 @@ type FilteringConfig struct {
 	ProtectionEnabled  bool     `yaml:"protection_enabled"`   // whether or not use any of dnsfilter features
 	FilteringEnabled   bool     `yaml:"filtering_enabled"`    // whether or not use filter lists
 	BlockingMode       string   `yaml:"blocking_mode"`        // mode how to answer filtered requests
+	BlackholeIPv4      string   `yaml:"blackhole_ip"`         // IP address to return for blocked hosts
+	BlackholeIPv6      string   `yaml:"blackhole_ip6"`        // IPv6 address to return for blocked hosts
 	BlockedResponseTTL uint32   `yaml:"blocked_response_ttl"` // if 0, then default is used (3600)
 	QueryLogEnabled    bool     `yaml:"querylog_enabled"`     // if true, query log is enabled
 	Ratelimit          int      `yaml:"ratelimit"`            // max number of requests per second from a given IP (0 to disable)
@@ -262,6 +268,21 @@ func (s *Server) initDNSFilter(config *ServerConfig) error {
 				filters[int(f.ID)] = string(f.Data)
 			} else {
 				filters[int(f.ID)] = f.FilePath
+			}
+		}
+	}
+
+	if s.conf.BlockingMode == "blackhole" {
+		s.BlackholeIPv4 = net.IPv4zero
+		s.BlackholeIPv6 = net.IPv6zero
+		if s.conf.BlackholeIPv4 != "" {
+			if ip := net.ParseIP(s.conf.BlackholeIPv4); ip != nil {
+				s.BlackholeIPv4 = ip
+			}
+		}
+		if s.conf.BlackholeIPv6 != "" {
+			if ip := net.ParseIP(s.conf.BlackholeIPv6); ip != nil {
+				s.BlackholeIPv6 = ip
 			}
 		}
 	}
@@ -597,6 +618,15 @@ func (s *Server) genDNSFilterMessage(d *proxy.DNSContext, result *dnsfilter.Resu
 	default:
 		if result.IP != nil {
 			return s.genResponseWithIP(m, result.IP)
+		}
+
+		if s.conf.BlockingMode == "blackhole" {
+			switch m.Question[0].Qtype {
+			case dns.TypeA:
+				return s.genARecord(m, s.BlackholeIPv4)
+			case dns.TypeAAAA:
+				return s.genAAAARecord(m, s.BlackholeIPv6)
+			}
 		}
 
 		if s.conf.BlockingMode == "null_ip" {
